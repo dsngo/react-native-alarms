@@ -18,7 +18,7 @@ Specifically: Many applications will be better served by using GCM, and all repe
 In terminal
 
 ```shell
-yarn add git+https://github.com/ioddly/react-native-alarms.git
+yarn add git+https://github.com/geart891/react-native-alarms.git
 react-native link
 ```
 In your AndroidManifest.xml  add this within within your `<application ...>` tag (alarms will fail silently if you
