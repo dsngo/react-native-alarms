@@ -11,6 +11,23 @@ import com.facebook.react.ReactApplication;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.bridge.ReactContext;
 
+// 
+import android.media.MediaPlayer;
+import android.media.RingtoneManager;
+import com.facebook.common.util.UriUtil;
+import android.app.PendingIntent;
+import android.app.Notification;
+import android.app.NotificationManager;
+import android.media.RingtoneManager;
+import java.io.IOException;
+import com.facebook.react.bridge.NativeModule;
+import com.facebook.react.bridge.ReactApplicationContext;
+import com.facebook.react.bridge.ReactContextBaseJavaModule;
+import com.facebook.react.bridge.ReactMethod;
+import android.net.Uri;
+import android.os.CountDownTimer;
+import static android.content.Context.NOTIFICATION_SERVICE;
+
 public class AlarmRun extends BroadcastReceiver {
   /**
    * Fires alarm after ReactContext has been obtained
@@ -19,7 +36,7 @@ public class AlarmRun extends BroadcastReceiver {
    */
   static MediaPlayer player = new MediaPlayer();
 
-  public static void fire(ReactContext reactContext, String alarmName, Intent intent) {
+  public static void fire(ReactContext reactContext, String alarmName, final Intent intent) {
     // ======
     if (intent.getExtras().getBoolean("stopNotification")) {
       if (player.isPlaying()) {
@@ -28,24 +45,24 @@ public class AlarmRun extends BroadcastReceiver {
       }
     } else {
       Uri uri;
-      String title = intent.getStringExtra(RNAlarmConstants.REACT_NATIVE_ALARM_TITLE);
-      String musicUri = intent.getStringExtra(RNAlarmConstants.REACT_NATIVE_ALARM_MUSIC_URI);
+      String title = intent.getStringExtra("title");
+      String musicUri = intent.getStringExtra("musicUri");
       if (musicUri == null || "".equals(musicUri)) {
         uri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
       } else {
         uri = UriUtil.parseUriOrNull(musicUri);
       }
-      PendingIntent pi = PendingIntent.getActivity(context, 100, intent, PendingIntent.FLAG_CANCEL_CURRENT);
-      Notification.Builder notificationBuilder = new Notification.Builder(context)
+      PendingIntent pi = PendingIntent.getActivity(reactContext, 100, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+      Notification.Builder notificationBuilder = new Notification.Builder(reactContext)
           .setSmallIcon(android.R.drawable.sym_def_app_icon) // 设置小图标
           .setVibrate(new long[] { 0, 6000 }).setContentTitle(title).setContentText("Meditation")
-          .setDefaults(Notification.DEFAULT_ALL).setAutoCancel(true).setDeleteIntent(createOnDismissedIntent(context))
+          .setDefaults(Notification.DEFAULT_ALL).setAutoCancel(true).setDeleteIntent(createOnDismissedIntent(reactContext, intent))
           .setFullScreenIntent(pi, true);
-      NotificationManager notificationManager = (NotificationManager) context.getSystemService(NOTIFICATION_SERVICE);
+      NotificationManager notificationManager = (NotificationManager) reactContext.getSystemService(NOTIFICATION_SERVICE);
       Notification notification = notificationBuilder.build();
       notificationManager.notify(0, notification);
       try {
-        player.setDataSource(context, uri);
+        player.setDataSource(reactContext, uri);
         player.setLooping(true);
         player.prepareAsync();
         player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -71,7 +88,7 @@ public class AlarmRun extends BroadcastReceiver {
       }
       if (musicUri != null && !"".equals(musicUri)) {
         try {
-          player.setDataSource(context, uri);
+          player.setDataSource(reactContext, uri);
           player.setLooping(true);
           player.prepareAsync();
           player.setOnPreparedListener(new MediaPlayer.OnPreparedListener() {
@@ -106,7 +123,7 @@ public class AlarmRun extends BroadcastReceiver {
     }
   }
 
-  public void onReceive(final Context context, Intent intent) {
+  public void onReceive(final Context context, final Intent intent) {
     Handler handler = new Handler(Looper.getMainLooper());
 
     final String alarmName = intent.getStringExtra("name");
@@ -134,9 +151,8 @@ public class AlarmRun extends BroadcastReceiver {
     });
   }
 
-  private PendingIntent createOnDismissedIntent(Context context) {
-    Context ctx = getReactApplicationContext();
-    Intent intent = new Intent(ctx);
+  public static PendingIntent createOnDismissedIntent(Context context, Intent intent) {
+    // Context ctx = getReactApplicationContext();
     intent.putExtra("stopNotification", true);
     PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 1, intent, 0);
     return pendingIntent;

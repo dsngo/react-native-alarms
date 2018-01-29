@@ -15,7 +15,7 @@ import com.facebook.react.bridge.ReactContext;
  */
 public class BootLauncher extends BroadcastReceiver {
     @Override
-    public void onReceive(final Context context, Intent intent) {
+    public void onReceive(final Context context, final Intent intent) {
         if(!(intent.getAction().equals("android.intent.action.BOOT_COMPLETED"))) {
             return;
         }
@@ -29,13 +29,13 @@ public class BootLauncher extends BroadcastReceiver {
         // Probably not necessary
         if(recontext != null) {
             Log.i("RNAlarms", "Attempting to fire boot event @boot");
-            AlarmRun.fire(recontext, alarmName);
+            AlarmRun.fire(recontext, alarmName, intent);
         } else {
             Log.i("RNAlarms", "Application is closed; attempting to launch and fire boot event @boot'");
             manager.addReactInstanceEventListener(new ReactInstanceManager.ReactInstanceEventListener() {
                 public void onReactContextInitialized(ReactContext context) {
                     Log.i("RNAlarms", "Attempting to fire boot event @boot");
-                    AlarmRun.fire(context, alarmName);
+                    AlarmRun.fire(context, alarmName, intent);
                 }
             });
             if (!manager.hasStartedCreatingInitialContext()) {
