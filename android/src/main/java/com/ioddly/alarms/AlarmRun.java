@@ -37,7 +37,7 @@ public class AlarmRun extends BroadcastReceiver {
   static MediaPlayer player = new MediaPlayer();
 
   public static void fire(ReactContext reactContext, String alarmName, final Intent intent) {
-    // ======
+    // ====== Stop notification
     if (intent.getExtras().getBoolean("stopNotification")) {
       if (player.isPlaying()) {
         player.stop();
@@ -54,9 +54,13 @@ public class AlarmRun extends BroadcastReceiver {
       }
       PendingIntent pi = PendingIntent.getActivity(reactContext, 100, intent, PendingIntent.FLAG_CANCEL_CURRENT);
       Notification.Builder notificationBuilder = new Notification.Builder(reactContext)
-          .setSmallIcon(android.R.drawable.sym_def_app_icon) // 设置小图标
-          .setVibrate(new long[] { 0, 6000 }).setContentTitle(title).setContentText("Meditation")
-          .setDefaults(Notification.DEFAULT_ALL).setAutoCancel(true).setDeleteIntent(createOnDismissedIntent(reactContext, intent))
+          .setSmallIcon(android.R.drawable.sym_def_app_icon) // ICON
+          .setVibrate(new long[] { 0, 6000 })
+          .setContentTitle("Meditation App")
+          .setContentText("Meditation") // NOTIFICATION NAME
+          .setDefaults(Notification.DEFAULT_ALL)
+          .setAutoCancel(true)
+          .setDeleteIntent(createOnDismissedIntent(reactContext, intent))
           .setFullScreenIntent(pi, true);
       NotificationManager notificationManager = (NotificationManager) reactContext.getSystemService(NOTIFICATION_SERVICE);
       Notification notification = notificationBuilder.build();
@@ -152,7 +156,6 @@ public class AlarmRun extends BroadcastReceiver {
   }
 
   public static PendingIntent createOnDismissedIntent(Context context, Intent intent) {
-    // Context ctx = getReactApplicationContext();
     intent.putExtra("stopNotification", true);
     PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 1, intent, 0);
     return pendingIntent;
